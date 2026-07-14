@@ -301,9 +301,7 @@ function DrinkExplorer({
           ref={closeRef}
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(51,92,75,0.18)] bg-white/85 text-[#20231f] shadow-sm transition focus:outline-none focus:ring-2 focus:ring-[#335c4b]/35 sm:right-5 sm:top-5 sm:h-11 sm:w-11 sm:hover:bg-white cursor-pointer
-        
-          aria-label="Close drink details"
+          className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(51,92,75,0.18)] bg-white/85 text-[#20231f] shadow-sm transition focus:outline-none focus:ring-2 focus:ring-[#335c4b]/35 sm:right-5 sm:top-5 sm:h-11 sm:w-11 sm:hover:bg-white cursor-pointer"
         
         >
           <X size={20} />
