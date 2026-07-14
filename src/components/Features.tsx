@@ -142,8 +142,8 @@ export function Features() {
           </div>
         </div>
 
-        <div className="mt-5 md:hidden">
-          <div className="mb-2 flex items-center justify-end">
+        <div className="mt-9 md:hidden">
+          <div className="mb-4 flex items-center justify-end">
       
             <p className="font-mono text-xs text-muted-foreground" aria-live="polite">
               {String(activeIndex + 1).padStart(2, "0")} — {String(site.features.length).padStart(2, "0")}
