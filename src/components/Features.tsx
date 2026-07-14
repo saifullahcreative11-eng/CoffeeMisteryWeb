@@ -38,7 +38,7 @@ function FeatureCard({
       }`}
     >
       <div
-        className="absolute inset-0 opacity-[0.7] transition-opacity duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-[0.62]"
+        className="absolute inset-0 opacity-[0.8] transition-opacity duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-[0.62]"
         style={{
           maskImage: "linear-gradient(to bottom, black 0%, black 46%, transparent 62%)",
           WebkitMaskImage: "linear-gradient(to bottom, black 0%, black 46%, transparent 62%)",
@@ -142,8 +142,8 @@ export function Features() {
           </div>
         </div>
 
-        <div className="mt-9 md:hidden">
-          <div className="mb-4 flex items-center justify-end">
+        <div className="mt-5 md:hidden">
+          <div className="mb-2 flex items-center justify-end">
       
             <p className="font-mono text-xs text-muted-foreground" aria-live="polite">
               {String(activeIndex + 1).padStart(2, "0")} — {String(site.features.length).padStart(2, "0")}

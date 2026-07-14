@@ -270,8 +270,8 @@ const input: SiteInput = {
         label: "Islamabad locations",
       },
       {
-        value: "3",
-        label: "Slow-bar methods",
+        value: "15+",
+        label: "Signature beverages",
       },
       {
         value: "100%",

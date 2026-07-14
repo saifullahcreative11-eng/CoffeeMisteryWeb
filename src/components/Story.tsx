@@ -6,7 +6,7 @@ export function Story() {
   const { story } = site;
   const mobileStats = [
     ...story.stats,
-    { value: "100%", label: "Arabica beans", mobileOnly: true },
+    { value: "03", label: "Slow-Bar Method", mobileOnly: true },
   ];
   const storyImage = (
     <>
@@ -16,7 +16,7 @@ export function Story() {
           alt={`Inside ${site.brand.name}`}
           fill
           sizes="(max-width: 1024px) 100vw, 50vw"
-          className="object-cover"
+          className="scale-125 object-cover"
         />
       </div>
       <div className="absolute -bottom-8 -left-6 hidden max-w-[220px] rounded-xl border border-border-strong bg-surface/90 p-5 shadow-2xl backdrop-blur-sm sm:block">
