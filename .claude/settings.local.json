@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh api *)",
+      "WebFetch(domain:api.github.com)",
+      "Bash(curl -s \"https://api.github.com/repos/anthropics/skills/contents/skills/frontend-design\")",
+      "Bash(mkdir -p ~/.claude/skills/frontend-design)",
+      "Bash(curl -s \"https://raw.githubusercontent.com/anthropics/skills/main/skills/frontend-design/SKILL.md\" -o ~/.claude/skills/frontend-design/SKILL.md)",
+      "Bash(curl -s \"https://raw.githubusercontent.com/anthropics/skills/main/skills/frontend-design/LICENSE.txt\" -o ~/.claude/skills/frontend-design/LICENSE.txt)",
+      "Read(//Users/saifullahkhan/.claude/skills/**)",
+      "Read(//Users/saifullahkhan/.claude/skills/frontend-design/**)",
+      "Bash(curl -s \"https://api.github.com/repos/nextlevelbuilder/ui-ux-pro-max-skill/contents/\")",
+      "Bash(curl -s \"https://api.github.com/repos/nextlevelbuilder/ui-ux-pro-max-skill/contents/cli\")",
+      "Bash(curl -s \"https://raw.githubusercontent.com/nextlevelbuilder/ui-ux-pro-max-skill/main/README.md\")",
+      "Bash(npm -v)"
+    ]
+  }
+}
