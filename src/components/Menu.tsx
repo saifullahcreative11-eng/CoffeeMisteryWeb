@@ -296,7 +296,7 @@ function DrinkExplorer({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 14 }}
         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-      > 
+      >  
         <button 
           ref={closeRef}
           type="button"
