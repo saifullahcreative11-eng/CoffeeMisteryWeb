@@ -296,13 +296,13 @@ function DrinkExplorer({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 14 }}
         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <button
+      > 
+        <button 
           ref={closeRef}
           type="button"
           onClick={onClose}
           className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(51,92,75,0.18)] bg-white/85 text-[#20231f] shadow-sm transition focus:outline-none focus:ring-2 focus:ring-[#335c4b]/35 sm:right-5 sm:top-5 sm:h-11 sm:w-11 sm:hover:bg-white cursor-pointer
-          "
+        
           aria-label="Close drink details"
         
         >
@@ -415,7 +415,7 @@ export function Menu() {
                   key={category.id}
                   type="button"
                   onClick={() => setActiveId(category.id)}
-                  className={`relative cursor-pointer whitespace-nowrap rounded-full px-3.5 py-2.5 text-xs font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:px-5 sm:text-sm ${
+                  className={`relative cursor-pointer whitespace-nowrap rounded-full px-3.5 py-2.5 text-xs font-medium transition-colors duration-200 sm:px-5 sm:text-sm ${
                     isActive ? "text-accent-foreground" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -446,53 +446,46 @@ export function Menu() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="grid grid-cols-1 gap-x-12 gap-y-4 sm:grid-cols-2 sm:gap-y-5"
+              className="grid grid-cols-1 gap-x-12 gap-y-8 sm:grid-cols-2"
             >
               {active.items.map((menuItem) => {
                 const title = splitLastWord(menuItem.name);
-                const shouldAlignDetailsWithDescription =
-                  menuItem.name === "Iced Chocolate" || menuItem.name === "Chocolate Iced Latte";
-                const shouldTightenDescriptionGap = menuItem.name === "Iced Chocolate";
 
                 return (
                   <button
                     key={menuItem.name}
                     type="button"
                     onClick={() => setSelectedItem(menuItem)}
-                    className={`group grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] grid-rows-[auto_auto] items-start gap-x-4 rounded-3xl border border-border bg-[#faf6ef] px-4 py-4 text-left transition-all duration-200 hover:border-accent/45 hover:bg-[#faf6ef] focus:outline-none focus:ring-2 focus:ring-accent/35 focus:ring-offset-4 focus:ring-offset-background max-sm:rounded-2xl max-sm:px-3.5 max-sm:py-3 max-sm:active:scale-[0.99] ${
-                      shouldTightenDescriptionGap ? "gap-y-0" : "gap-y-1"
-                    }`}
+                    className="group grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-start gap-4 rounded-3xl border border-border bg-[#faf6ef] px-5 py-5 text-left transition-all duration-200 hover:border-accent/45 hover:bg-[#faf6ef] focus:outline-none focus:ring-2 focus:ring-accent/35 focus:ring-offset-4 focus:ring-offset-background max-sm:rounded-2xl max-sm:px-3 max-sm:py-3 max-sm:active:scale-[0.99]"
                     aria-label={`Open details for ${menuItem.name}`}
                   >
-                    <span className="col-start-1 row-start-1 block min-w-0 font-display text-lg font-semibold text-foreground transition-colors group-hover:text-accent">
-                      {menuItem.signature ? (
-                        <>
-                          {title.lead && `${title.lead} `}
-                          <span className="inline-flex items-baseline gap-2 whitespace-nowrap">
-                            <span>{title.last}</span>
-                            <span className="inline-flex translate-y-[-2px] items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 font-sans text-[10px] font-semibold uppercase tracking-wide text-accent">
-                              <Sparkle size={10} weight="fill" />
-                              Signature
+                    <span className="min-w-0">
+                      <span className="block font-display text-lg font-semibold text-foreground transition-colors group-hover:text-accent">
+                        {menuItem.signature ? (
+                          <>
+                            {title.lead && `${title.lead} `}
+                            <span className="inline-flex items-baseline gap-2 whitespace-nowrap">
+                              <span>{title.last}</span>
+                              <span className="inline-flex translate-y-[-2px] items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 font-sans text-[10px] font-semibold uppercase tracking-wide text-accent">
+                                <Sparkle size={10} weight="fill" />
+                                Signature
+                              </span>
                             </span>
-                          </span>
-                        </>
-                      ) : (
-                        menuItem.name
-                      )}
+                          </>
+                        ) : (
+                          menuItem.name
+                        )}
+                      </span>
+                      <span className="mt-1 block text-sm text-muted-foreground">{menuItem.description}</span>
                     </span>
-                    <span className="col-start-1 row-start-2 block min-w-0 text-sm text-muted-foreground">
-                      {menuItem.description}
-                    </span>
-                    <span className="col-start-2 row-start-1 whitespace-nowrap font-display text-lg font-bold text-accent tabular-nums">
-                      {currency.format(menuItem.price)}
-                    </span>
-                    <span
-                      className={`col-start-2 row-start-2 inline-flex items-center justify-self-end gap-1 whitespace-nowrap text-right text-[10px] font-semibold uppercase tracking-[0.1em] text-accent ${
-                        shouldAlignDetailsWithDescription ? "self-start" : "self-end"
-                      }`}
-                    >
-                      View details
-                      <ArrowRight size={11} weight="bold" />
+                    <span className="flex flex-col items-end">
+                      <span className="whitespace-nowrap font-display text-lg font-bold text-accent tabular-nums">
+                        {currency.format(menuItem.price)}
+                      </span>
+                      <span className="mt-2 inline-flex items-center gap-1 whitespace-nowrap text-right text-[10px] font-semibold uppercase tracking-[0.1em] text-accent">
+                        View details
+                        <ArrowRight size={11} weight="bold" />
+                      </span>
                     </span>
                   </button>
                 );
