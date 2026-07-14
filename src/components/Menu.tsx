@@ -444,7 +444,7 @@ export function Menu() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="grid grid-cols-1 gap-x-12 gap-y-8 sm:grid-cols-2"
+              className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2 sm:gap-y-5"
             >
               {active.items.map((menuItem) => {
                 const title = splitLastWord(menuItem.name);
