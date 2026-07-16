@@ -12,7 +12,8 @@
       "Bash(curl -s \"https://api.github.com/repos/nextlevelbuilder/ui-ux-pro-max-skill/contents/\")",
       "Bash(curl -s \"https://api.github.com/repos/nextlevelbuilder/ui-ux-pro-max-skill/contents/cli\")",
       "Bash(curl -s \"https://raw.githubusercontent.com/nextlevelbuilder/ui-ux-pro-max-skill/main/README.md\")",
-      "Bash(npm -v)"
+      "Bash(npm -v)",
+      "Bash(npm run dev)"
     ]
   }
 }
