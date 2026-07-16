@@ -187,8 +187,7 @@ const input: SiteInput = {
     phone: "+92 307 8263333",
     whatsapp: "+923078263333",
     email: "hello@coffeemistry.com",
-    address:
-      "Shop 1 & 2, Block 8 Allahwali Market, F-8/1, Islamabad, Pakistan",
+    address: "F-8 HQ . F-7 . Islamabad, Pakistan",
     area: "F-8/1",
     city: "Islamabad",
   },
@@ -266,7 +265,7 @@ const input: SiteInput = {
     pullQuoteAttribution: "Coffeemistry",
     stats: [
       {
-        value: "2",
+        value: "02",
         label: "Islamabad locations",
       },
       {

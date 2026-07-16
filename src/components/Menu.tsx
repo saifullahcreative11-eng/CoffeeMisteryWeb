@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, animate, motion, useAnimationControls, useDragControls, useMotionValue, useTransform } from "framer-motion";
 import { ArrowRight, Coffee, Cube, Drop, Lightning, Sparkle, SquaresFour, X } from "@phosphor-icons/react/dist/ssr";
 import { Reveal } from "@/components/ui/Reveal";
 import { site } from "@/config/site";
@@ -37,6 +37,23 @@ function splitLastWord(value: string) {
   };
 }
 
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(() =>
+    typeof window === "undefined" ? false : window.matchMedia(query).matches
+  );
+
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    const updateMatches = () => setMatches(media.matches);
+
+    updateMatches();
+    media.addEventListener("change", updateMatches);
+    return () => media.removeEventListener("change", updateMatches);
+  }, [query]);
+
+  return matches;
+}
+
 function RatingDots({ value }: { value: number }) {
   return (
     <div className="flex gap-1.5" aria-label={`${value} out of 5`}>
@@ -55,7 +72,7 @@ function RatingDots({ value }: { value: number }) {
 function IngredientIcon({ icon }: { icon: DrinkIngredient["icon"] }) {
   if (icon === "milk") {
     return (
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[rgba(51,92,75,0.18)] bg-[#f7faf6] text-[#335c4b]">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[rgba(51,92,75,0.18)] bg-[#f7faf6] text-[#335c4b] sm:h-10 sm:w-10">
         <svg
           width="22"
           height="22"
@@ -86,7 +103,7 @@ function IngredientIcon({ icon }: { icon: DrinkIngredient["icon"] }) {
 
   if (icon === "foam") {
     return (
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[rgba(51,92,75,0.18)] bg-[#f7faf6] text-[#335c4b]">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[rgba(51,92,75,0.18)] bg-[#f7faf6] text-[#335c4b] sm:h-10 sm:w-10">
         <svg
           width="22"
           height="22"
@@ -117,7 +134,7 @@ function IngredientIcon({ icon }: { icon: DrinkIngredient["icon"] }) {
 
   const Icon = iconMap[icon];
   return (
-    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[rgba(51,92,75,0.18)] bg-[#f7faf6] text-[#335c4b]">
+    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[rgba(51,92,75,0.18)] bg-[#f7faf6] text-[#335c4b] sm:h-10 sm:w-10">
       <Icon size={20} weight={icon === "bean" || icon === "sweet" ? "fill" : "regular"} />
     </span>
   );
@@ -137,7 +154,7 @@ function DrinkCup({ item }: { item: MenuItem }) {
   }, []);
 
   return (
-    <div className="relative flex h-[230px] items-center justify-center overflow-hidden rounded-[24px] border border-white/70 bg-white px-3 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] sm:h-auto sm:min-h-[420px] sm:px-8 sm:py-8 lg:min-h-[590px]">
+    <div className="relative flex h-[190px] items-center justify-center overflow-hidden rounded-[22px] border border-white/70 bg-white px-2.5 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] sm:h-auto sm:min-h-[420px] sm:rounded-[24px] sm:px-8 sm:py-8 lg:min-h-[590px]">
       <div
         className="absolute inset-0 opacity-60"
         style={{
@@ -145,7 +162,7 @@ function DrinkCup({ item }: { item: MenuItem }) {
             "radial-gradient(circle at 28% 18%, rgba(255,255,255,0.9), transparent 34%), linear-gradient(135deg, rgba(255,255,255,0.7), rgba(236,218,196,0.35))",
         }}
       />
-      <div className="relative w-full max-w-[400px] sm:max-w-[520px]">
+      <div className="relative w-full max-w-[360px] sm:max-w-[520px]">
         <svg
           viewBox="0 0 620 340"
           role="img"
@@ -226,6 +243,11 @@ function DrinkExplorer({
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const isClosingRef = useRef(false);
+  const drawerControls = useAnimationControls();
+  const dragControls = useDragControls();
+  const drawerY = useMotionValue(0);
+  const isMobile = useMediaQuery("(max-width: 767px)");
   const profile = useMemo(
     () => [
       ["Strength", item.tasteProfile.strength],
@@ -237,7 +259,15 @@ function DrinkExplorer({
 
   useEffect(() => {
     const previousActive = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    closeRef.current?.focus();
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousBodyTouchAction = document.body.style.touchAction;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+
+    if (isMobile) {
+      panelRef.current?.focus();
+    } else {
+      closeRef.current?.focus();
+    }
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
@@ -249,7 +279,11 @@ function DrinkExplorer({
       const focusable = panelRef.current.querySelectorAll<HTMLElement>(
         'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
       );
-      if (!focusable.length) return;
+      if (!focusable.length) {
+        event.preventDefault();
+        panelRef.current.focus();
+        return;
+      }
 
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
@@ -262,50 +296,178 @@ function DrinkExplorer({
       }
     }
 
+    function handleTouchMove(event: TouchEvent) {
+      const target = event.target instanceof Element ? event.target : null;
+      if (target?.closest("[data-drawer-scroll]")) return;
+      event.preventDefault();
+    }
+
     document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("touchmove", handleTouchMove, { passive: false });
     document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
+    document.documentElement.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
-      previousActive?.focus();
+      document.removeEventListener("touchmove", handleTouchMove);
+      document.body.style.overflow = previousBodyOverflow;
+      document.body.style.touchAction = previousBodyTouchAction;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+
+      if (!isMobile) {
+        previousActive?.focus({ preventScroll: true });
+      }
     };
-  }, [onClose]);
+  }, [isMobile, onClose]);
+
+  const shellMotion = isMobile
+    ? {
+        initial: { y: "105%" },
+        animate: { y: 0 },
+        exit: { y: "105%" },
+        transition: { type: "spring", stiffness: 390, damping: 38, mass: 0.9 } as const,
+      }
+    : {
+        initial: { opacity: 0, scale: 0.96, y: 14 },
+        animate: { opacity: 1, scale: 1, y: 0 },
+        exit: { opacity: 0, scale: 0.96, y: 14 },
+        transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] as const },
+      };
+  const viewportHeight = isMobile && typeof window !== "undefined" ? window.innerHeight : 0;
+  const drawerDragLimit = viewportHeight;
+  const backdropFadeDistance = Math.max(viewportHeight * 0.45, 260);
+  const mobileBackdropOpacity = useTransform(drawerY, [0, backdropFadeDistance], [1, 0.12]);
+  const mobileBackdropBlur = useTransform(drawerY, [0, backdropFadeDistance], ["blur(3px)", "blur(0px)"]);
+
+  useEffect(() => {
+    if (!isMobile) return;
+    drawerControls.start({
+      y: 0,
+      transition: { type: "spring", stiffness: 390, damping: 38, mass: 0.9 },
+    });
+  }, [drawerControls, isMobile]);
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 sm:px-6"
+      className={`fixed inset-0 z-50 flex justify-center ${
+        isMobile ? "items-end px-0 pt-10" : "items-center px-4 py-6 sm:px-6"
+      }`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
       aria-labelledby="drink-explorer-title"
       aria-modal="true"
       role="dialog"
     >
-      <button
+      <motion.button
         type="button"
-        className="absolute inset-0 cursor-default bg-[#1b120c]/38 backdrop-blur-[10px]"
+        tabIndex={-1}
+        className={`absolute inset-0 cursor-default ${
+          isMobile ? "bg-[#120d09]/42 backdrop-saturate-125" : "bg-[#1b120c]/38 backdrop-blur-[10px]"
+        }`}
+        style={
+          isMobile
+            ? {
+                opacity: mobileBackdropOpacity,
+                backdropFilter: mobileBackdropBlur,
+                WebkitBackdropFilter: mobileBackdropBlur,
+              }
+            : undefined
+        }
         aria-label="Close drink details"
         onClick={onClose}
       />
 
       <motion.div
         ref={panelRef}
-        className="relative max-h-[90vh] w-[72vw] max-w-[1100px] overflow-y-auto rounded-[26px] border border-white/65 bg-background p-2 text-[#20231f] shadow-[0_34px_120px_rgba(28,18,12,0.28)] outline-none sm:rounded-[30px] sm:p-3 max-lg:w-[86vw] max-md:w-full"
-        initial={{ opacity: 0, scale: 0.96, y: 14 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96, y: 14 }}
-        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-      >  
-        <button 
-          ref={closeRef}
-          type="button"
-          onClick={onClose}
-          className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(51,92,75,0.18)] bg-white/85 text-[#20231f] shadow-sm transition focus:outline-none focus:ring-2 focus:ring-[#335c4b]/35 sm:right-5 sm:top-5 sm:h-11 sm:w-11 sm:hover:bg-white cursor-pointer"
-        
-        >
-          <X size={20} />
-        </button>
+        tabIndex={-1}
+        className={`border border-white/65 text-[#20231f] outline-none [-webkit-overflow-scrolling:touch] ${
+          isMobile
+            ? "fixed inset-x-0 bottom-0 top-[10dvh] w-full overflow-hidden rounded-t-[28px] border-b-0 bg-background px-4 pt-8 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-[0_-28px_110px_rgba(28,18,12,0.34)]"
+            : "relative max-h-[90vh] w-[72vw] max-w-[1100px] overflow-y-auto rounded-[26px] bg-background p-2 shadow-[0_34px_120px_rgba(28,18,12,0.28)] sm:rounded-[30px] sm:p-3 max-lg:w-[86vw] max-md:w-full"
+        }`}
+        initial={shellMotion.initial}
+        animate={isMobile ? drawerControls : shellMotion.animate}
+        exit={shellMotion.exit}
+        transition={shellMotion.transition}
+        drag={isMobile ? "y" : false}
+        dragControls={dragControls}
+        dragListener={false}
+        dragConstraints={{ top: 0, bottom: drawerDragLimit }}
+        dragElastic={0}
+        dragMomentum={false}
+        onDrag={(_, info) => {
+          if (isMobile) {
+            drawerY.set(Math.max(info.offset.y, 0));
+          }
+        }}
+        onDragEnd={(_, info) => {
+          const drawerHeight = panelRef.current?.getBoundingClientRect().height ?? 0;
+          const shouldClose =
+            isMobile &&
+            drawerHeight > 0 &&
+            (info.offset.y >= drawerHeight * 0.22 || (info.offset.y > 38 && info.velocity.y > 560));
+
+          if (shouldClose) {
+            if (isClosingRef.current) return;
+            isClosingRef.current = true;
+            animate(drawerY, backdropFadeDistance, {
+              duration: 0.3,
+              ease: [0.22, 1, 0.36, 1],
+            });
+            void drawerControls
+              .start({
+                y: drawerHeight + 80,
+                transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] },
+              })
+              .then(onClose);
+            return;
+          }
+
+          animate(drawerY, 0, {
+            type: "spring",
+            stiffness: 520,
+            damping: 42,
+            mass: 0.8,
+          });
+          void drawerControls.start({
+            y: 0,
+            transition: { type: "spring", stiffness: 520, damping: 42, mass: 0.8 },
+          });
+        }}
+      >
+        {isMobile ? (
+          <>
+            <div
+              aria-hidden="true"
+              className="absolute inset-x-0 top-0 z-10 h-[260px] cursor-grab touch-none select-none [touch-action:none] active:cursor-grabbing"
+              onPointerDown={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                dragControls.start(event);
+              }}
+              onTouchMove={(event) => event.preventDefault()}
+              onWheel={(event) => event.preventDefault()}
+            />
+            <div
+              aria-hidden="true"
+              className="absolute left-1/2 top-2 z-20 flex h-7 w-24 -translate-x-1/2 pointer-events-none items-start justify-center pt-1.5"
+            >
+              <span className="h-1.5 w-16 rounded-full bg-[#20231f]/12" />
+            </div>
+          </>
+        ) : (
+          <button
+            ref={closeRef}
+            type="button"
+            onClick={onClose}
+            className="absolute right-4 top-4 z-10 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[rgba(51,92,75,0.18)] bg-white/85 text-[#20231f] shadow-sm transition focus:outline-none focus:ring-2 focus:ring-[#335c4b]/35 sm:right-5 sm:top-5 sm:h-11 sm:w-11 sm:hover:bg-white"
+            aria-label="Close drink details"
+          >
+            <X size={20} />
+          </button>
+        )}
 
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
@@ -314,61 +476,90 @@ function DrinkExplorer({
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
             transition={contentTransition}
-            className="grid gap-4 sm:gap-6 lg:grid-cols-[45fr_55fr]"
+            data-drawer-scroll={isMobile ? "" : undefined}
+            className={`grid gap-3 sm:gap-6 lg:grid-cols-[45fr_55fr] ${
+              isMobile ? "h-full overflow-y-auto overscroll-contain pr-1" : ""
+            }`}
           >
-            <DrinkCup item={item} />
+            <div
+              className={isMobile ? "touch-none select-none [touch-action:none]" : ""}
+              onPointerDown={(event) => {
+                if (!isMobile) return;
+                event.preventDefault();
+                event.stopPropagation();
+                dragControls.start(event);
+              }}
+              onTouchMove={(event) => {
+                if (isMobile) event.preventDefault();
+              }}
+              onWheel={(event) => {
+                if (isMobile) event.preventDefault();
+              }}
+            >
+              <DrinkCup item={item} />
+            </div>
 
-            <div className="flex min-w-0 flex-col px-3 py-5 sm:px-6 sm:py-12 lg:py-14 lg:pr-8">
+            <div className="flex min-w-0 flex-col px-1 py-4 sm:px-6 sm:py-12 lg:py-14 lg:pr-8">
               <div>
-                <p className="mb-1.5 inline-flex items-center gap-2 rounded-full bg-[rgba(51,92,75,0.1)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#335c4b] sm:mb-2">
+                <p className="mb-1.5 inline-flex items-center gap-1.5 rounded-full bg-[rgba(51,92,75,0.1)] px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#335c4b] sm:mb-2 sm:gap-2 sm:px-3 sm:py-1 sm:text-xs sm:tracking-[0.18em]">
                   <Lightning size={13} weight="fill" />
                   Drink Guide
                 </p>
-                <h3 id="drink-explorer-title" className="font-display text-3xl font-semibold leading-tight text-[#20231f] sm:text-5xl">
+                <h3 id="drink-explorer-title" className="font-display text-[2.35rem] font-semibold leading-[0.95] text-[#20231f] sm:text-5xl sm:leading-tight">
                   {item.name}
                 </h3>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6f746d] sm:mt-3 sm:text-lg sm:leading-7">
+                <p className="mt-2 max-w-2xl text-sm leading-5 text-[#6f746d] sm:mt-3 sm:text-lg sm:leading-7">
                   {item.description}
                 </p>
               </div>
 
-              <section className="mt-4 border-t border-[rgba(32,35,31,0.12)] pt-3.5 sm:mt-6 sm:pt-5">
-                <h4 className="text-xs font-bold uppercase tracking-[0.16em] text-[#335c4b]">Ingredients</h4>
-                <div className="mt-3 grid grid-cols-3 gap-2 sm:mt-4 sm:gap-4">
+              <section className="mt-4 border-t border-[rgba(32,35,31,0.12)] pt-3 sm:mt-6 sm:pt-5">
+                <h4 className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#335c4b] sm:text-xs">Ingredients</h4>
+                <div
+                  className={`mt-2.5 grid gap-2 sm:mt-4 sm:gap-4 ${
+                    item.ingredients.length === 4 ? "grid-cols-4 sm:grid-cols-3" : "grid-cols-3"
+                  }`}
+                >
                   {item.ingredients.map((ingredient) => (
                     <div
                       key={`${item.name}-${ingredient.name}`}
-                      className="flex min-w-0 flex-col items-center gap-2 text-center sm:flex-row sm:text-left"
+                      className="flex min-w-0 flex-col items-center gap-1.5 text-center sm:flex-row sm:gap-2 sm:text-left"
                     >
                       <IngredientIcon icon={ingredient.icon} />
                       <div className="min-w-0">
                         <p className="text-xs font-semibold leading-tight text-[#20231f] sm:text-sm">{ingredient.name}</p>
-                        <p className="mt-1 text-xs leading-tight text-[#6f746d] sm:text-sm">{ingredient.quantity}</p>
+                        <p
+                          className={`mt-0.5 text-[11px] leading-tight text-[#6f746d] sm:mt-1 sm:text-sm ${
+                            ingredient.name === "Ice" && ingredient.quantity === "Generous amount" ? "whitespace-nowrap" : ""
+                          }`}
+                        >
+                          {ingredient.quantity}
+                        </p>
                       </div>
                     </div>
                   ))}
                 </div>
               </section>
 
-              <section className="mt-4 border-t border-[rgba(32,35,31,0.12)] pt-3.5 sm:mt-6 sm:pt-5">
-                <h4 className="text-xs font-bold uppercase tracking-[0.16em] text-[#335c4b]">Taste Profile</h4>
-                <div className="mt-3 grid gap-x-8 gap-y-2.5 sm:mt-4 sm:grid-cols-2 sm:gap-y-3">
+              <section className="mt-4 border-t border-[rgba(32,35,31,0.12)] pt-3 sm:mt-6 sm:pt-5">
+                <h4 className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#335c4b] sm:text-xs">Taste Profile</h4>
+                <div className="mt-2 grid gap-x-8 gap-y-1.5 sm:mt-4 sm:grid-cols-2 sm:gap-y-3">
                   {profile.map(([label, value]) => (
                     <div key={`${item.name}-${label}`} className="flex items-center justify-between gap-4">
-                      <span className="text-sm font-medium text-[#20231f]">{label}</span>
+                      <span className="text-sm font-medium text-[#20231f] sm:text-sm">{label}</span>
                       <RatingDots value={Number(value)} />
                     </div>
                   ))}
                 </div>
               </section>
 
-              <section className="mt-4 border-t border-[rgba(32,35,31,0.12)] pt-3.5 sm:mt-6 sm:pt-5">
-                <h4 className="text-xs font-bold uppercase tracking-[0.16em] text-[#335c4b]">Best For</h4>
-                <div className="mt-3 grid grid-cols-3 gap-2 sm:mt-4 sm:flex sm:flex-wrap sm:gap-2.5">
+              <section className="mt-4 border-t border-[rgba(32,35,31,0.12)] pt-3 sm:mt-6 sm:pt-5">
+                <h4 className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#335c4b] sm:text-xs">Best For</h4>
+                <div className="mt-2 grid grid-cols-3 gap-2 sm:mt-4 sm:flex sm:flex-wrap sm:gap-2.5">
                   {item.bestFor.slice(0, 3).map((tag) => (
                     <span
                       key={`${item.name}-${tag}`}
-                      className="flex min-h-12 min-w-0 items-center justify-center rounded-full bg-[rgba(51,92,75,0.1)] px-2.5 py-2 text-center text-xs font-medium leading-tight text-[#335c4b] sm:min-h-10 sm:px-4 sm:text-sm"
+                      className="flex min-h-9 min-w-0 items-center justify-center rounded-full bg-[rgba(51,92,75,0.1)] px-2.5 py-1.5 text-center text-[11px] font-medium leading-tight text-[#335c4b] sm:min-h-10 sm:px-4 sm:text-sm"
                     >
                       {tag}
                     </span>
@@ -390,7 +581,7 @@ export function Menu() {
   const closeExplorer = useCallback(() => setSelectedItem(null), []);
 
   return (
-    <section id="menu" className="bg-background pt-14 pb-8 md:pt-16 md:pb-10">
+    <section id="menu" className="bg-background pt-10 pb-8 md:pt-12 md:pb-10">
       <div className="mx-auto max-w-5xl px-6 lg:px-10">
         <Reveal className="mx-auto max-w-2xl text-center">
           <span className="text-xs font-medium uppercase tracking-[0.2em] text-accent">
@@ -436,7 +627,7 @@ export function Menu() {
           </p>
         </Reveal>
 
-        <div className="mt-10 min-h-[300px] sm:mt-14">
+        <div className="mt-10 sm:mt-14">
           <AnimatePresence mode="wait">
             <motion.div
               key={active.id}

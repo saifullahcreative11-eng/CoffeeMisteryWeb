@@ -61,7 +61,7 @@ export function Story() {
               {mobileStats.map((stat) => (
                 <div
                   key={stat.label}
-                  className={"mobileOnly" in stat && stat.mobileOnly ? "sm:hidden" : ""}
+                  className={`text-center ${"mobileOnly" in stat && stat.mobileOnly ? "sm:hidden" : ""}`}
                 >
                   <p className="font-display text-4xl font-semibold text-foreground">{stat.value}</p>
                   <p className="mt-1 text-sm text-muted-foreground">{stat.label}</p>

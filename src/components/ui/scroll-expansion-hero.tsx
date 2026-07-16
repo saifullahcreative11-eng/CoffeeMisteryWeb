@@ -63,6 +63,14 @@ const ScrollExpandMedia = ({
     scrollProgressRef.current = scrollProgress;
   }, [scrollProgress]);
 
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent('coffeemistry:hero-expanded-change', {
+        detail: { expanded: mediaFullyExpanded },
+      })
+    );
+  }, [mediaFullyExpanded]);
+
   const animateProgressTo = useCallback((target: number): void => {
     if (progressAnimationRef.current) {
       window.cancelAnimationFrame(progressAnimationRef.current);
@@ -316,6 +324,7 @@ const ScrollExpandMedia = ({
           <div className='container mx-auto flex flex-col items-center justify-start relative z-10'>
             <div className='flex flex-col items-center justify-center w-full h-[78dvh] min-h-[620px] relative md:h-[100dvh] md:min-h-0'>
               <div
+                data-hero-section
                 className='absolute z-0 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-none rounded-2xl'
                 style={{
                   width: `${mediaWidth}px`,
@@ -329,6 +338,7 @@ const ScrollExpandMedia = ({
                   mediaSrc.includes('youtube.com') ? (
                     <div className='relative w-full h-full pointer-events-none'>
                       <iframe
+                        data-hero-media
                         width='100%'
                         height='100%'
                         src={
@@ -360,6 +370,7 @@ const ScrollExpandMedia = ({
                   ) : (
                     <div className='relative w-full h-full pointer-events-none'>
                       <video
+                        data-hero-media
                         ref={videoRef}
                         src={mediaSrc}
                         poster={posterSrc}
@@ -379,9 +390,9 @@ const ScrollExpandMedia = ({
                       ></div>
 
                       <motion.div
-                      className='absolute inset-0 bg-black/45 rounded-xl'
-                      initial={{ opacity: 0.75 }}
-                      animate={{ opacity: 0.62 - scrollProgress * 0.28 }}
+                        className='absolute inset-0 bg-black/45 rounded-xl'
+                        initial={{ opacity: 0.75 }}
+                        animate={{ opacity: 0.62 - scrollProgress * 0.28 }}
                         transition={{ duration: 0.2 }}
                       />
                     </div>
@@ -389,6 +400,7 @@ const ScrollExpandMedia = ({
                 ) : (
                   <div className='relative w-full h-full'>
                     <Image
+                      data-hero-media
                       src={mediaSrc}
                       alt={title || 'Media content'}
                       width={1280}

@@ -16,7 +16,7 @@ export function Testimonials() {
     const timer = setInterval(() => {
       setDirection(1);
       setIndex((i) => (i + 1) % testimonials.length);
-    }, 6000);
+    }, 4000);
     return () => clearInterval(timer);
   }, []);
 
@@ -26,6 +26,8 @@ export function Testimonials() {
   };
 
   const current = testimonials[index];
+  const swipeConfidenceThreshold = 44;
+  const swipeVelocityThreshold = 420;
 
   return (
     <section id="reviews" className="relative overflow-hidden border-y border-border bg-surface/40 pt-20 pb-14 md:pt-24 md:pb-20">
@@ -50,7 +52,19 @@ export function Testimonials() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: direction * -40 }}
               transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute inset-0"
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.18}
+              dragMomentum={false}
+              dragSnapToOrigin
+              onDragEnd={(_, info) => {
+                if (info.offset.x <= -swipeConfidenceThreshold || info.velocity.x <= -swipeVelocityThreshold) {
+                  go(1);
+                } else if (info.offset.x >= swipeConfidenceThreshold || info.velocity.x >= swipeVelocityThreshold) {
+                  go(-1);
+                }
+              }}
+              className="absolute inset-0 cursor-grab touch-pan-y select-none active:cursor-grabbing"
             >
               <p className="text-balance font-display text-2xl italic leading-relaxed text-foreground md:text-3xl">
                 &ldquo;{current.quote}&rdquo;

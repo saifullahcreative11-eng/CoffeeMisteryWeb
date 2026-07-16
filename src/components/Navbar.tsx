@@ -7,16 +7,134 @@ import { List, X } from "@phosphor-icons/react/dist/ssr";
 import { BrandMark } from "@/components/BrandLogo";
 import { site } from "@/config/site";
 
+const SCROLL_DIRECTION_THRESHOLD = 12;
+const TOP_VISIBILITY_OFFSET = 8;
+
 export function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
+  const [navbarVisible, setNavbarVisible] = useState(true);
   const [open, setOpen] = useState(false);
+  const [heroExpanded, setHeroExpanded] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+    const heroMedia = document.querySelector<HTMLElement>(
+      "[data-hero-media], [data-hero-section]"
+    );
+    const hasHeroMedia = Boolean(heroMedia && "IntersectionObserver" in window);
+    let isHeroMediaVisible = true;
+    let lastScrollY = window.scrollY;
+    let accumulatedDelta = 0;
+    let lastDirection: "up" | "down" | null = null;
+
+    const shouldForceVisible = () => {
+      if (heroExpanded) return false;
+
+      return (
+        window.scrollY <= TOP_VISIBILITY_OFFSET ||
+        (hasHeroMedia && isHeroMediaVisible)
+      );
+    };
+
+    const syncVisibility = () => {
+      if (shouldForceVisible()) {
+        setNavbarVisible(true);
+      }
+    };
+
+    const syncVisibilitySoon = () => {
+      window.requestAnimationFrame(syncVisibility);
+    };
+
+    syncVisibility();
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const delta = currentScrollY - lastScrollY;
+      lastScrollY = currentScrollY;
+
+      if (delta > 0) {
+        lastDirection = "down";
+      } else if (delta < 0) {
+        lastDirection = "up";
+      }
+
+      if (shouldForceVisible()) {
+        accumulatedDelta = 0;
+        setNavbarVisible(true);
+        return;
+      }
+
+      accumulatedDelta =
+        Math.sign(delta) === Math.sign(accumulatedDelta)
+          ? accumulatedDelta + delta
+          : delta;
+
+      if (Math.abs(accumulatedDelta) < SCROLL_DIRECTION_THRESHOLD) {
+        return;
+      }
+
+      setNavbarVisible(accumulatedDelta < 0);
+      accumulatedDelta = 0;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", syncVisibilitySoon, { passive: true });
+    window.addEventListener("pageshow", syncVisibilitySoon);
+    window.addEventListener("hashchange", syncVisibilitySoon);
+
+    if (!hasHeroMedia || !heroMedia) {
+      return () => {
+        window.removeEventListener("scroll", handleScroll);
+        window.removeEventListener("resize", syncVisibilitySoon);
+        window.removeEventListener("pageshow", syncVisibilitySoon);
+        window.removeEventListener("hashchange", syncVisibilitySoon);
+      };
+    }
+
+    isHeroMediaVisible = heroMedia.getBoundingClientRect().bottom > 0;
+    syncVisibility();
+
+    const observer = new IntersectionObserver(([entry]) => {
+      isHeroMediaVisible = entry.isIntersecting;
+
+      if (
+        !isHeroMediaVisible &&
+        lastDirection === "down" &&
+        window.scrollY > TOP_VISIBILITY_OFFSET
+      ) {
+        setNavbarVisible(false);
+        return;
+      }
+
+      syncVisibility();
+    });
+
+    observer.observe(heroMedia);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", syncVisibilitySoon);
+      window.removeEventListener("pageshow", syncVisibilitySoon);
+      window.removeEventListener("hashchange", syncVisibilitySoon);
+    };
+  }, [heroExpanded]);
+
+  useEffect(() => {
+    function handleHeroExpandedChange(event: Event) {
+      const expanded = event instanceof CustomEvent && Boolean(event.detail?.expanded);
+      setHeroExpanded(expanded);
+
+      if (expanded && !open) {
+        setNavbarVisible(false);
+      } else if (!expanded) {
+        setNavbarVisible(true);
+      }
+    }
+
+    window.addEventListener("coffeemistry:hero-expanded-change", handleHeroExpandedChange);
+    return () => {
+      window.removeEventListener("coffeemistry:hero-expanded-change", handleHeroExpandedChange);
+    };
+  }, [open]);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -27,13 +145,19 @@ export function Navbar() {
 
   return (
     <header
-      className={`pointer-events-none fixed inset-x-0 top-5 z-50 px-4 transition-all duration-300 ${
-        scrolled || open
-          ? "translate-y-0"
-          : "translate-y-0"
+      aria-hidden={!navbarVisible && !open}
+      className={`pointer-events-none fixed inset-x-0 top-5 z-50 px-4 transition-all duration-300 ease-in-out ${
+        navbarVisible || open
+          ? "translate-y-0 opacity-100"
+          : "-translate-y-4 opacity-0"
       }`}
     >
-      <nav className="pointer-events-auto mx-auto flex h-[66px] max-w-6xl items-center justify-between rounded-full border border-border bg-surface/80 px-5 py-2 shadow-[0_18px_54px_rgba(0,0,0,0.22)] backdrop-blur-xl sm:h-20 sm:px-7 lg:px-9">
+      <nav
+        inert={!navbarVisible && !open}
+        className={`mx-auto flex h-[66px] max-w-6xl items-center justify-between rounded-full border border-border bg-surface/80 px-5 py-2 shadow-[0_18px_54px_rgba(0,0,0,0.22)] backdrop-blur-xl sm:h-20 sm:px-7 lg:px-9 ${
+          navbarVisible || open ? "pointer-events-auto" : "pointer-events-none"
+        }`}
+      >
         <Link
           href="#home"
           className="flex items-center gap-2.5 font-display text-base font-semibold tracking-tight text-foreground sm:text-lg"
