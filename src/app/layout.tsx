@@ -20,6 +20,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://coffee-mistery-web.vercel.app"),
   title: site.seo.title,
   description: site.seo.description,
   keywords: site.seo.keywords,
@@ -28,6 +29,21 @@ export const metadata: Metadata = {
     description: site.seo.ogDescription,
     type: "website",
     locale: site.seo.locale,
+    url: "https://coffee-mistery-web.vercel.app",
+    images: [
+      {
+        url: "/opengraph-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Coffeemistry logo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: site.seo.ogTitle,
+    description: site.seo.ogDescription,
+    images: ["/twitter-image.jpg"],
   },
 };
 
